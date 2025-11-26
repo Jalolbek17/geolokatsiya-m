@@ -1,36 +1,75 @@
-const card = document.getElementById('ip-card');
+const container = document.getElementById("container");
+const locationContainer = document.getElementById("location-container");
+const mapBox = document.getElementById("map-box");
 
-fetch("https://api.ipify.org?format=json")
-    .then(response => response.json())
+fetch('https://api64.ipify.org?format=json')
+    .then(res => res.json())
     .then(data => {
-        getLocationp(data.ip);
+        container.innerHTML = `
+                    <div class="ip-card">
+                        <div class="ip-label"><span class="status-dot"></span>Your IP Address</div>
+                        <div class="ip-value">${data.ip}</div>
+                    </div>
+                `;
+        getLocation(data.ip);
     })
-    .catch(error => {
-        card.innerHTML = "<h2>Xatolik yuz berdi!</h2>";
-        console.error(error);
+    .catch(err => {
+        console.error("IP olishda xato:", err);
+        container.innerHTML = '<div class="ip-card"><div class="loading"><p style="color: #ef4444;">Failed to fetch IP address</p></div></div>';
     });
 
-function getLocationp(ip) {
-    fetch(`https://api.weatherapi.com/v1/ip.json?q=${ip}&key=4785c4047efa4ea989a44136252411`)
-        .then(response => response.json())
-        .then(data => {
-            displayData(data);
+function getLocation(ip) {
+    fetch(`https://api.weatherapi.com/v1/ip.json?q=${ip}&key=e0c4fcc2ca0449578ae35836241312`)
+        .then(res => res.json())
+        .then(loc => {
+            locationContainer.innerHTML = `
+                        <div class="location-section">
+                            <div class="location-item">
+                                <div class="location-label">Location</div>
+                                <div class="location-value">${loc.city}</div>
+                                <div class="location-sub">${loc.region}</div>
+                            </div>
+
+                            <div class="location-item">
+                                <div class="location-label">Country</div>
+                                <div class="location-value">${loc.country_name}</div>
+                                <div class="location-sub">${loc.country_code} • ${loc.continent_name}</div>
+                            </div>
+
+                            <div class="location-item">
+                                <div class="location-label">Timezone</div>
+                                <div class="location-value">${loc.tz_id.split('/')[1]}</div>
+                                <div class="location-sub">${loc.tz_id}</div>
+                            </div>
+
+                            <div class="location-item">
+                                <div class="location-label">Latitude</div>
+                                <div class="location-value">${loc.lat.toFixed(4)}°</div>
+                            </div>
+
+                            <div class="location-item">
+                                <div class="location-label">Longitude</div>
+                                <div class="location-value">${loc.lon.toFixed(4)}°</div>
+                            </div>
+
+                            <div class="location-item">
+                                <div class="location-label">Coordinates</div>
+                                <div class="location-value" style="font-size: 1.1rem;">${loc.lat.toFixed(2)}°N<br>${loc.lon.toFixed(2)}°E</div>
+                            </div>
+                        </div>
+                    `;
+
+            loadMap(loc.lat, loc.lon);
         })
-        .catch(error => {
-            card.innerHTML = "<h2>Joylashuvni olishda xatolik!</h2>";
-            console.error(error);
+        .catch(err => {
+            console.error("Location xatosi:", err);
+            locationContainer.innerHTML = '<div class="location-section"><div class="location-item"><div class="loading"><p style="color: #ef4444;">Failed to fetch location data</p></div></div></div>';
         });
 }
 
-function displayData(data) {
-    card.innerHTML = `
-        <h2>Sizning IP: ${data.ip}</h2>
-        <div class="info-row"><div class="info-title">Shahar:</div><div class="info-value">${data.city}</div></div>
-        <div class="info-row"><div class="info-title">Viloyat/Region:</div><div class="info-value">${data.region}</div></div>
-        <div class="info-row"><div class="info-title">Davlat:</div><div class="info-value">${data.country_name} (${data.country_code})</div></div>
-        <div class="info-row"><div class="info-title">Qit’a:</div><div class="info-value">${data.continent_name} (${data.continent_code})</div></div>
-        <div class="info-row"><div class="info-title">Latitude / Longitude:</div><div class="info-value">${data.lat}, ${data.lon}</div></div>
-        <div class="info-row"><div class="info-title">Mahalliy Vaqt:</div><div class="info-value">${data.localtime}</div></div>
-        <div class="info-row"><div class="info-title">Time Zone:</div><div class="info-value">${data.tz_id}</div></div>
-    `;
+function loadMap(lat, lon) {
+    const key = "VpTm6OegQY3aaGRR3G41";
+    const url = `https://api.maptiler.com/maps/outdoor-v4/?key=${key}#14/${lat}/${lon}`;
+    document.getElementById("map").src = url;
+    mapBox.style.display = 'block';
 }
